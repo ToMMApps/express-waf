@@ -58,5 +58,4 @@
 
     module.exports.ExpressWAF = ExpressWAF;
 
-    module.exports.MongoDBWrapper = require('./database/mongo-db');
 })();

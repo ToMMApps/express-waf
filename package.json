@@ -2,7 +2,7 @@
   "name": "express-waf",
   "version": "0.0.2",
   "description": "A simple Web Application Firewall (WAF)",
-  "main": "express-waf.js",
+  "main": "index.js",
   "scripts": {
     "test": "jasmine-node"
   },
