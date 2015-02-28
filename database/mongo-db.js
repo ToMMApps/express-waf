@@ -15,7 +15,7 @@
 
 
     /**
-     * Wrapper class for MongoDB for use with the Blocker module.
+     * Wrapper class for MongoDB for use with the Blocker modules.
      * Host and port specify on which computer MongoDB is running.
      * @param host Host of the database which shall be used for the Blocklist.
      * @param port Number of the port which shall be used for the Blocklist.
@@ -25,7 +25,7 @@
      * @param password optional parameter for password to connect to database.
      * @attention This class is permanently holding a connection to the database.
      */
-    function MongoDBWrapper(host, port, database, collection, username, password){
+    function MongoDB(host, port, database, collection, username, password){
         _self = this;
 
         if(arguments < 3){
@@ -47,7 +47,7 @@
         _db = new Db(database, new Server(host, port), {safe:false}, {auto_reconnect: true});
     }
 
-    MongoDBWrapper.prototype.open = function(cb){
+    MongoDB.prototype.open = function(cb){
 
         if(_isOpen){
             console.log('Connection is already open!'); cb();
@@ -111,7 +111,7 @@
     /**
      * Adds the ip to the Blocklist.
      */
-    MongoDBWrapper.prototype.add = function(ip, cb) {
+    MongoDB.prototype.add = function(ip, cb) {
         _getBlockList(function (blocklist) {
             blocklist.insert({ipEntry: ip}, function (err) {
                 if (err) {
@@ -128,7 +128,7 @@
     /**
      * Calls cb with true if the Blocklist contains the specified ip.
      */
-    MongoDBWrapper.prototype.contains = function(ip, cb) {
+    MongoDB.prototype.contains = function(ip, cb) {
         _getBlockList(function (blocklist) {
             blocklist.findOne({ipEntry: ip}, function(err, item){
                 if(err){
@@ -143,7 +143,7 @@
     /**
      * Removes ip from Blocklist.
      */
-    MongoDBWrapper.prototype.remove = function(ip, cb) {
+    MongoDB.prototype.remove = function(ip, cb) {
         _getBlockList(function (blocklist) {
             blocklist.remove({ipEntry: ip}, function(err, records){
                 if(err){
@@ -160,7 +160,7 @@
     /**
      * Remove all hosts from blocklist.
      */
-    MongoDBWrapper.prototype.removeAll = function (cb) {
+    MongoDB.prototype.removeAll = function (cb) {
         _getBlockList(function (blocklist) {
             blocklist.remove({}, function (err) {
                 if(err) {
@@ -174,6 +174,12 @@
         })
     }
 
-    module.exports = MongoDBWrapper;
+    MongoDB.prototype.close = function(cb){
+        _db.close(function(err){
+            cb();
+        });
+    };
+
+    module.exports = MongoDB;
 
 })();

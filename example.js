@@ -7,25 +7,23 @@ var mongoDBWrapper = require('./express-waf').MongoDBWrapper;
 var wrapper = new mongoDBWrapper('localhost', 27017, 'block', 'blocklist');
 var waf = new ExpressWAF({
     db: wrapper,
-    blockTime: 10
+    blockTime: 10000
 });
 
-waf.addModule('testModule', {}, function(error) {
+
+waf.addModule('xss-module', {}, function(error) {
     console.log(error);
 });
-waf.addModule('XSSModule', {}, function(error) {
+waf.addModule('lfi-module', {appInstance: app, publicPath: "./public"}, function(error) {
     console.log(error);
 });
-waf.addModule('LFIModule', {appInstance: app, publicPath: __dirname+"/test"}, function(error) {
-    console.log(error);
-});
-waf.addModule('SqlModule', {}, function(error) {
+waf.addModule('sql-module', {}, function(error) {
     console.log(error);
 });
 
-waf.addModule('CSRF', {
+waf.addModule('csrf-module', {
     allowedMethods:['GET', 'POST'],
-    refererIndependentUrls: ['^\\/\\/?$']
+    refererIndependentUrls: ['/']
 }, function (error) {
     console.log(error);
 })
@@ -37,6 +35,7 @@ app.use(bodyParser.urlencoded({
 
 
 app.use(waf.check);
+app.use(express.static("./public"));
 
 app.get('/', function(req, res) {
     res.status(200).end('Hello world!');

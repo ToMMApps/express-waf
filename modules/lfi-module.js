@@ -58,12 +58,13 @@
 
         function checkRoute(method){
             if (_routes.length == 0) {
-                routeArray();
+                routeArrayForExpress4();
             }
 
             var valid = false;
             for (var i = 0; i < _routes.length; i++) {
-                if (_routes[i].method === method && new RegExp(_routes[i].regexp.toLowerCase()).test(req.url.split('?')[0].toLowerCase())) {
+
+                if (_routes[i].method === method && _routes[i].path === req.url.split('?')[0]) {
                     valid = true;
                     break;
                 }
@@ -85,7 +86,9 @@
             res.status(403).end();
         }
 
-        function routeArray(){
+        function routeArrayForExpress3(){
+            var routes = _app.get_router();
+
             _routes = [];
             for(var i in _app.routes) {
                 for(var y in _app.routes[i]) {
@@ -97,6 +100,23 @@
 
                 }
             }
+        }
+
+        function routeArrayForExpress4(){
+            _app._router.stack.forEach(function(a){
+                var route = a.route;
+                if(route){
+                    route.stack.forEach(function(r){
+                        if(r.method && route.path && r.regexp){
+                            _routes.push({
+                                method: r.method.toUpperCase(),
+                                path: route.path,
+                                regexp: r.regexp.source
+                            });
+                        }
+                    });
+                }
+            });
         }
     };
 

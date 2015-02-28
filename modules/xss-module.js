@@ -34,7 +34,7 @@
                 _keys = Object.keys(req.body);
                 _keys.forEach(function (keyElement) {
                     _reqElement = req.body[keyElement];
-                    //console.log(/" [a-z]*="/i.test(_reqElement));
+                    //console.log(/" [a-z]*="/i.spec(_reqElement));
                     _patterns.forEach(function (pattern) {
                         if (pattern.test(_reqElement) && _blocker.blockHost) {
                             handleAttack(_host);
