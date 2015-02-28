@@ -53,8 +53,6 @@ app.put('/', function(req, res) {
 
 var server = app.listen(8080);
 
-
-
 describe("sql", function(){
 
     it("testGetApostropheSqlInj", function(done){
@@ -84,6 +82,7 @@ describe("sql", function(){
         });
     });
 
+    /* Removed from module because it may block valid urls
     it("testGetLogic2SqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=1 or 1 = (2-1)').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
@@ -92,6 +91,7 @@ describe("sql", function(){
             });
         });
     });
+    */
 
     it("testGetCommentCrash1SqlInj", function(done){
         request.get('http://localhost:8080/spec?user= --').on('response', function(res) {
@@ -101,6 +101,7 @@ describe("sql", function(){
             });
         });
     });
+
 
     it("testGetCommentCrash2SqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=/*').on('response', function(res) {
@@ -156,6 +157,7 @@ describe("sql", function(){
         });
     });
 
+    /* Removed from module because it may block valid urls
     it("testPostLogic2SqlInjection", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '1 or 1 = (2-1)' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
@@ -163,7 +165,7 @@ describe("sql", function(){
                 done();
             });
         });
-    });
+    });*/
 
     it("testPostCommentCrash1SqlInj", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '--' } }).on('response', function(res) {
@@ -237,6 +239,7 @@ describe("sql", function(){
         });
     });
 
+    /* Removed from module because it may block valid urls
     it("testDeleteLogic2SqlInjection", function(done){
         request.del('http://localhost:8080/spec?user=1 or 1 = (2-1)').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
@@ -244,7 +247,7 @@ describe("sql", function(){
                 done();
             });
         });
-    });
+    });*/
 
     it("testDeleteCommentCrash1SqlInj", function(done){
         request.del('http://localhost:8080/spec?user= --').on('response', function(res) {
@@ -309,6 +312,7 @@ describe("sql", function(){
         });
     });
 
+    /* Removed from module because it may block valid urls
     it("testPutLogic2SqlInjection", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '1 or 1 = (2-1)' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
@@ -316,7 +320,7 @@ describe("sql", function(){
                 done();
             });
         });
-    });
+    });*/
 
     it("testPutCommentCrash1SqlInj", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '--' } }).on('response', function(res) {

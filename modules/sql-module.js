@@ -71,7 +71,7 @@
         function checkGetOrDeleteRequest(req, res, cb) {
             var _url = req.url;
             for(var i in _patternSql){
-                if (_patternSql[i].test(_url) && _blocker.blockHost) {
+                if (_patternSql[i].test(_url)) {
                     handleAttack();
                     cb = undefined;
                     break;

@@ -16,3 +16,11 @@ Additional Modules
 This firewall is modularized. This means that you can add additional modules to the basic functionality.
 Additional modules can be found in the folder "/modules". This includes, for example a module against SQL Injection attacks or
 a module against CSRF attacks.
+
+Testing
+---------
+All modules can be tested by using the jasmine-node testing framework.
+For example, this will check the lfi-module:
+```
+jasmine-node spec/lfi-spec.js
+```
