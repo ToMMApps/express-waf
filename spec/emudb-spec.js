@@ -1,12 +1,6 @@
-/**
- * Specifications for the emulated database.
- * Author: Henning Gerrits
- */
-
-var TestDB = require('./../database/emulated-db');
-var testdb = new TestDB();
-
 describe("testdb", function(){
+    var TestDB = require('./../database/emulated-db');
+    var testdb = new TestDB();
 
     it("must add an ip to the blacklist", function(done){
         testdb.add("127.0.0.1", function(){

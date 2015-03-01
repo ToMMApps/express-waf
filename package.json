@@ -23,7 +23,8 @@
   "homepage": "https://github.com/ToMMApps/express-waf",
   "devDependencies":{
     "jasmine-node": ">= 1.14.5",
-    "request": "^2.48.0"
+    "request": "^2.48.0",
+    "istanbul": ">= 0.3.6"
   },
   "dependencies": {
     "body-parser": "^1.9.2",

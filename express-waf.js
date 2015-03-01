@@ -47,6 +47,14 @@
         }
     };
 
+    /**
+     * Removes any additional module from the firewall.
+     */
+    ExpressWAF.prototype.removeAll = function(cb){
+        _modules = [_blocker];
+        cb();
+    };
+
     function getIP(req) {
         var ip = req.ip;
         //if ip starts with 127 try to find a not localhost url

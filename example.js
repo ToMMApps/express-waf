@@ -4,7 +4,7 @@ var bodyParser = require('body-parser');
 var app = express();
 var ExpressWAF = require('./express-waf').ExpressWAF;
 
-var EmulatedDB = require('./../database/emulated-db');
+var EmulatedDB = require('./database/emulated-db');
 var emudb = new EmulatedDB();
 
 //construct firewall with configuration options

@@ -3,40 +3,37 @@
  * Author: Henning Gerrits
  */
 
-(function(){
-    var _data = [];
+module.exports = function EmulatedDB(){
+    this._data = [];
 
-    function EmulatedDB(){}
+    this.open = function(cb){
+        cb();
+    };
 
-    EmulatedDB.prototype.open = function(cb){cb();};
-
-    EmulatedDB.prototype.add = function(ip, cb) {
-        if(_data.indexOf(ip) === -1){
-            _data[_data.length] = ip;
+    this.add = function(ip,cb){
+        if(this._data.indexOf(ip) === -1){
+            this._data[this._data.length] = ip;
         }
 
         if(cb){cb();}
     };
 
-    EmulatedDB.prototype.contains = function(ip, cb) {
-        cb(_data.indexOf(ip) > -1);
+    this.contains = function(ip,cb){
+        cb(this._data.indexOf(ip) > -1);
     };
 
-    EmulatedDB.prototype.remove = function(ip, cb) {
-
-        var index = _data.indexOf(ip);
+    this.remove = function(ip,cb){
+        var index = this._data.indexOf(ip);
 
         if(index !== -1){
-            _data.splice(index, 1);
+            this._data.splice(index, 1);
         }
 
         if(cb){cb();}
     };
 
-    EmulatedDB.prototype.removeAll = function (cb) {
-        _data = [];
+    this.removeAll = function(cb){
+        this._data = [];
         if(cb){cb();}
-    };
-
-    module.exports = EmulatedDB;
-})();
+    }
+};

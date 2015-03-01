@@ -1,59 +1,60 @@
-/**
- * Specifications for the SQL-Module.
- */
-
-var express = require('express');
-var request = require('request');
-
-var bodyParser = require('body-parser');
-
-var TestDB = require('./../database/emulated-db');
-var testdb = new TestDB();
-
-var app = express();
-
-var ExpressWaf = require('./../express-waf').ExpressWAF;
-var BLOCK_TIME = 1000;
-var waf = new ExpressWaf({
-    db: testdb,
-    blockTime: BLOCK_TIME
-});
-
-waf.addModule('sql-module', {}, function(error) {
-    console.log(error);
-});
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-
-app.use(waf.check);
-app.use(express.static("./"));
-
-app.get('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.get('/spec', function(req, res) {
-    res.status(200).end();
-});
-
-app.delete('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.post('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.put('/', function(req, res) {
-    res.status(200).end();
-});
-
-var server = app.listen(8080);
-
 describe("sql", function(){
+    var server, request, testdb, waf;
+
+    it("should load properly", function(done){
+        var express = require('express');
+        request = require('request');
+
+        var bodyParser = require('body-parser');
+
+        var TestDB = require('./../database/emulated-db');
+        testdb = new TestDB();
+
+        var app = express();
+
+        var ExpressWaf = require('./../express-waf').ExpressWAF;
+        var BLOCK_TIME = 1000;
+        waf = new ExpressWaf({
+            db: testdb,
+            blockTime: BLOCK_TIME
+        });
+
+        waf.addModule('sql-module', {}, function(error) {
+            console.log(error);
+        });
+
+        app.use(bodyParser.json());
+        app.use(bodyParser.urlencoded({
+            extended: true
+        }));
+
+        app.use(waf.check);
+        app.use(express.static("./"));
+
+        app.get('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.get('/spec', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.delete('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.post('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.put('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        server = app.listen(8080, function(){
+            done();
+        });
+    });
 
     it("testGetApostropheSqlInj", function(done){
         request.get('http://localhost:8080/spec?user=\'').on('response', function(res) {
@@ -99,6 +100,13 @@ describe("sql", function(){
             testdb.remove("127.0.0.1", function () {
                 done();
             });
+        });
+    });
+
+    it("testGetUsual", function(done){
+        request.get('http://localhost:8080/').on('response', function(res) {
+            expect(res.statusCode).toEqual(200);
+            done();
         });
     });
 
@@ -368,8 +376,11 @@ describe("sql", function(){
     });
 
     it("should close properly", function(done){
-        server.close();
-        done();
+        waf.removeAll(function(){
+            server.close(function(){
+                done();
+            });
+        });
     });
 
 });

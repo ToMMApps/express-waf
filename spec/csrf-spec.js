@@ -1,48 +1,47 @@
-var express = require('express');
-var request = require('request');
-
-var TestDB = require('./../database/emulated-db');
-var testdb = new TestDB();
-
-var app = express();
-
-var ExpressWaf = require('./../express-waf').ExpressWAF;
-var BLOCK_TIME = 1000;
-var waf = new ExpressWaf({
-    db: testdb,
-    blockTime: BLOCK_TIME
-});
-
-waf.addModule('csrf-module', {
-    allowedMethods:['GET', 'POST'],
-    refererIndependentUrls: ['/'],
-    allowedOrigins: ['www.example.com']
-}, function (error) {
-
-});
-
-app.use(waf.check);
-
-app.get('/', function(req, res) {
-    res.status(200).end();
-});
-app.get('/spec', function(req, res) {
-    res.status(200).end();
-});
-app.post('/spec', function(req, res) {
-    res.status(200).end();
-});
-app.put('/spec', function(req, res) {
-    res.status(200).end();
-});
-
-var server = app.listen(8080);
-
 describe("csrf", function(){
+    var server, testdb, request, waf;
 
-    //Remove entry in blocker after every spec
-    afterEach(function(){
-        testdb.remove("127.0.0.1");
+    it("should load properly", function(done){
+        request = require('request');
+        var express = require('express');
+        var TestDB = require('./../database/emulated-db');
+        testdb = new TestDB();
+
+        var app = express();
+
+        var ExpressWaf = require('./../express-waf').ExpressWAF;
+        var BLOCK_TIME = 1000;
+        waf = new ExpressWaf({
+            db: testdb,
+            blockTime: BLOCK_TIME
+        });
+
+        waf.addModule('csrf-module', {
+            allowedMethods:['GET', 'POST'],
+            refererIndependentUrls: ['/'],
+            allowedOrigins: ['www.example.com']
+        }, function (error) {
+
+        });
+
+        app.use(waf.check);
+
+        app.get('/', function(req, res) {
+            res.status(200).end();
+        });
+        app.get('/spec', function(req, res) {
+            res.status(200).end();
+        });
+        app.post('/spec', function(req, res) {
+            res.status(200).end();
+        });
+        app.put('/spec', function(req, res) {
+            res.status(200).end();
+        });
+
+        server = app.listen(8080, function(){
+            done();
+        });
     });
 
     it("must not block referrer independent urls", function(done){
@@ -118,13 +117,13 @@ describe("csrf", function(){
 
     it("must allow a cors request with a known origin", function(done){
         var headers = {
-            'Origin': 'www.evil.com'
+            'Origin': 'www.example.com'
         };
         request.get({
             url: 'http://localhost:8080',
             headers: headers
         }, function(err, res) {
-            expect(res.statusCode).toEqual(403);
+            expect(res.statusCode).toEqual(200);
             testdb.remove("127.0.0.1", function(){  //remove entry in blacklist
                 done();
             });
@@ -132,7 +131,10 @@ describe("csrf", function(){
     });
 
     it("should close properly", function(done){
-        server.close();
-        done();
+        waf.removeAll(function(){
+            server.close(function(){
+                done();
+            });
+        });
     });
 });

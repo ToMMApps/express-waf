@@ -1,53 +1,53 @@
-/**
- * Specifications for the LFI-Module.
- */
-
-var express = require('express');
-var request = require('request');
-
-var TestDB = require('./../database/emulated-db');
-var testdb = new TestDB();
-
-var app = express();
-
-var ExpressWaf = require('./../express-waf').ExpressWAF;
-var BLOCK_TIME = 1000;
-var waf = new ExpressWaf({
-    db: testdb,
-    blockTime: BLOCK_TIME
-});
-
-waf.addModule('lfi-module', {appInstance: app, publicPath: "./public"}, function(error) {
-    console.log(error);
-});
-
-app.use(waf.check);
-app.use(express.static("./public"));
-
-app.get('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.get('/route', function(req, res) {
-    res.status(200).end();
-});
-
-app.delete('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.post('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.put('/', function(req, res) {
-    res.status(200).end();
-});
-
-var server = app.listen(8080);
-
-
 describe("lfi", function(){
+    var server, testdb, request, waf;
+
+    it("should load properly", function(done){
+        request = require('request');
+        var express = require('express');
+
+        var TestDB = require('./../database/emulated-db');
+        testdb = new TestDB();
+
+        var app = express();
+
+        var ExpressWaf = require('./../express-waf').ExpressWAF;
+        var BLOCK_TIME = 1000;
+        waf = new ExpressWaf({
+            db: testdb,
+            blockTime: BLOCK_TIME
+        });
+
+        waf.addModule('lfi-module', {appInstance: app, publicPath: "./public"}, function(error) {
+            console.log(error);
+        });
+
+        app.use(waf.check);
+        app.use(express.static("./public"));
+
+        app.get('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.get('/route', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.delete('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.post('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.put('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        server = app.listen(8080, function(){
+            done();
+        });
+    });
 
     it("testGetParentDirParam", function(done){
         request.get('http://localhost:8080/spec?file="../../passwd"', function(err, res) {
@@ -197,7 +197,10 @@ describe("lfi", function(){
     });
 
     it("should close properly", function(done){
-        server.close();
-        done();
+        waf.removeAll(function(){
+            server.close(function(){
+                done();
+            });
+        });
     });
 });

@@ -40,10 +40,14 @@ app.use(waf.check);
 If you forget this step your firewall won't do anything!
 This is it. Your firewall is now configured to be used with your node.js/express application.
 
-Testing
+Code-Quality
 ---------
-All modules can be tested by using the jasmine-node testing framework.
-For example, this will check the lfi-module:
+All modules can be tested by using the jasmine-node testing framework:
 ```
-jasmine-node spec/lfi-spec.js
+jasmine-node spec/
+```
+
+Code coverage can be calculated with istanbul:
+```
+istanbul cover jasmine-node spec/
 ```

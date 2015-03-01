@@ -1,41 +1,40 @@
-/**
- * Specifications for the Blocker.
- * The test makes use of the module blockme which adds a host to the blacklist.
- * Author: Henning Gerrits
- */
-
-var express = require('express');
-var request = require('request');
-
-var TestDB = require('./../database/emulated-db');
-var testdb = new TestDB();
-
-var app = express();
-
-var ExpressWaf = require('./../express-waf').ExpressWAF;
-var BLOCK_TIME = 1000;
-var waf = new ExpressWaf({
-    db: testdb,
-    blockTime: BLOCK_TIME
-});
-
-waf.addModule("blockme-module", {
-    url: "/blockme"
-});
-
-app.use(waf.check);
-
-app.get('/', function(req, res) {
-    res.status(200).end();
-});
-
-app.get('/blockme', function(req, res) {
-    res.status(200).end();
-});
-
-var server = app.listen(8080);
-
 describe("blocker", function(){
+    var server, testdb, BLOCK_TIME, request, waf;
+
+    it("should load properly", function(done){
+        request = require('request');
+        var express = require('express');
+        var app = express();
+
+        var TestDB = require('./../database/emulated-db');
+        testdb = new TestDB();
+
+        var ExpressWaf = require('./../express-waf').ExpressWAF;
+
+        BLOCK_TIME = 1000;
+        waf = new ExpressWaf({
+            db: testdb,
+            blockTime: BLOCK_TIME
+        });
+
+        waf.addModule("blockme-module", {
+            url: "/blockme"
+        });
+
+        app.use(waf.check);
+
+        app.get('/', function(req, res) {
+            res.status(200).end();
+        });
+
+        app.get('/blockme', function(req, res) {
+            res.status(200).end();
+        });
+
+        server = app.listen(8080, function(){
+            done();
+        });
+    });
 
     it("must block clients that visit blockme", function(done){
         request.get("http://localhost:8080/blockme", function(err,res){
@@ -76,7 +75,10 @@ describe("blocker", function(){
     });
 
     it("should close properly", function(done){
-        server.close();
-        done();
+        waf.removeAll(function(){
+            server.close(function(){
+                done();
+            });
+        });
     });
 });
