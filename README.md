@@ -10,10 +10,13 @@ Blocker configuration includes:
 - blockTime: A blacklist timeout which indicates the time after that entries from the blacklist will be removed.
 - db: The used database for the blacklist. In the folder "/database" you can find predefined database connectors. If you don't find the connector you need, you may define your own database connector. This connector must define an add-, a remove- and a contains-function.
 ```
-var waf = new ExpressWAF({
-    blocker: {
+var ExpressWaf = require('express-waf');
+
+var emudb = new ExpressWaf.EmulatedDB();
+var waf = new ExpressWaf.ExpressWaf({
+    blocker:{
         db: emudb,
-        blockTime: 10000
+        blockTime: 1000
     },
     log: true
 });

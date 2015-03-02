@@ -1,6 +1,6 @@
 {
   "name": "express-waf",
-  "version": "0.0.2",
+  "version": "0.1.2",
   "description": "A simple Web Application Firewall (WAF)",
   "main": "index.js",
   "scripts": {
@@ -30,6 +30,7 @@
     "body-parser": "^1.9.2",
     "express": "^4.10.2",
     "log4js": "^0.6.21",
-    "xemplar": "0.0.8"
+    "xemplar": "0.0.8",
+    "mongodb": ">= 1.4.32"
   }
 }
