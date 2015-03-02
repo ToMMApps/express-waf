@@ -7,10 +7,8 @@ Usage
 ----------
 The constructor expects the configuration for the blocker and optional settings as parameters.
 Blocker configuration includes:
-    - blockTime: A blacklist timeout which indicates the time after that entries from the blacklist will be removed.
-    - db: The used database for the blacklist. In the folder "/database" you can find predefined database connectors.
-    If you don't find the connector you need, you may define your own database connector.
-    This connector must define an add-, a remove- and a contains-function.
+- blockTime: A blacklist timeout which indicates the time after that entries from the blacklist will be removed.
+- db: The used database for the blacklist. In the folder "/database" you can find predefined database connectors. If you don't find the connector you need, you may define your own database connector. This connector must define an add-, a remove- and a contains-function.
 ```
 var waf = new ExpressWAF({
     blocker: {
