@@ -7,10 +7,8 @@ Usage
 ----------
 The constructor expects the configuration for the blocker and optional settings as parameters.
 Blocker configuration includes:
-    - blockTime: A blacklist timeout which indicates the time after that entries from the blacklist will be removed.
-    - db: The used database for the blacklist. In the folder "/database" you can find predefined database connectors.
-    If you don't find the connector you need, you may define your own database connector.
-    This connector must define an add-, a remove- and a contains-function.
+- blockTime: A blacklist timeout which indicates the time after that entries from the blacklist will be removed.
+- db: The used database for the blacklist. In the folder "/database" you can find predefined database connectors. If you don't find the connector you need, you may define your own database connector. This connector must define an add-, a remove- and a contains-function.
 ```
 var waf = new ExpressWAF({
     blocker: {
@@ -56,9 +54,3 @@ Code coverage can be calculated with istanbul:
 ```
 istanbul cover jasmine-node spec/
 ```
-Current Jenkins report for this project:
-- ![BuildStatus](http://jenkins.tomm-apps.de/buildStatus/icon?job=tommapps_mgoqueryjs)
-- ![Test](http://jenkins.tomm-apps.de:3434/badge/tommapps_mgoqueryjs/test)
-- ![LastBuild](http://jenkins.tomm-apps.de:3434/badge/tommapps_mgoqueryjs/lastbuild)
-- ![CodeCoverageInJenkins](http://jenkins.tomm-apps.de:3434/badge/tommapps_mgoqueryjs/coverage)
-
