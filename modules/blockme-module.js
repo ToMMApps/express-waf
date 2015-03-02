@@ -18,8 +18,7 @@
 
     BlockMe.prototype.check = function(req, res, cb) {
         if(_config.url && req.url === _config.url){
-            _blocker.blockHost(_config.ipService(req));
-            res.status(403).end();
+            _config.attack.handle(req, res);
         }
         else cb();
     };

@@ -1,5 +1,5 @@
 describe("sql", function(){
-    var server, request, testdb, waf;
+    var server, request, emudb, waf;
 
     it("should load properly", function(done){
         var express = require('express');
@@ -7,16 +7,19 @@ describe("sql", function(){
 
         var bodyParser = require('body-parser');
 
-        var TestDB = require('./../database/emulated-db');
-        testdb = new TestDB();
+        var EmulatedDB = require('./../database/emulated-db');
+        emudb = new EmulatedDB();
 
         var app = express();
 
         var ExpressWaf = require('./../express-waf').ExpressWAF;
         var BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: testdb,
-            blockTime: BLOCK_TIME
+            blocker: {
+                db: emudb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
         });
 
         waf.addModule('sql-module', {}, function(error) {
@@ -59,7 +62,7 @@ describe("sql", function(){
     it("testGetApostropheSqlInj", function(done){
         request.get('http://localhost:8080/spec?user=\'').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -68,7 +71,7 @@ describe("sql", function(){
     it("testGetSimpleSqlInj", function(done){
         request.get('http://localhost:8080/spec?user=\' or 1 = \'1').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -77,7 +80,7 @@ describe("sql", function(){
     it("testGetLogicSqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=1 or 1 = \'1\'').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -97,7 +100,7 @@ describe("sql", function(){
     it("testGetCommentCrash1SqlInj", function(done){
         request.get('http://localhost:8080/spec?user= --').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -114,7 +117,7 @@ describe("sql", function(){
     it("testGetCommentCrash2SqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=/*').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -123,7 +126,7 @@ describe("sql", function(){
     it("testGetCommentCrash3SqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=1;/*').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -132,7 +135,7 @@ describe("sql", function(){
     it("testGetMultipleQuerySqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=1; INSERT INTO users').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -141,7 +144,7 @@ describe("sql", function(){
     it("testGetUnionSqlInjection", function(done){
         request.get('http://localhost:8080/spec?user=1 UNION ALL SELECT creditCardNr FROM table').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -150,7 +153,7 @@ describe("sql", function(){
     it("testPostSimpleSqlInj", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '1; INSERT INTO users' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -159,7 +162,7 @@ describe("sql", function(){
     it("testPostLogicSqlInjection", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '1 or 1 = \'1\'' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -178,7 +181,7 @@ describe("sql", function(){
     it("testPostCommentCrash1SqlInj", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '--' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -187,7 +190,7 @@ describe("sql", function(){
     it("testPostCommentCrash2SqlInjection", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '/*' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -196,7 +199,7 @@ describe("sql", function(){
     it("testPostCommentCrash3SqlInjection", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '1;/*' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -205,7 +208,7 @@ describe("sql", function(){
     it("testPostMultipleQuerySqlInjection", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '1; INSERT INTO users' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -214,7 +217,7 @@ describe("sql", function(){
     it("testPostUnionSqlInjection", function(done){
         request.post('http://localhost:8080/spec', { form: { user: '1; INSERT INTO users' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -223,7 +226,7 @@ describe("sql", function(){
     it("testDeleteApostropheSqlInj", function(done){
         request.del('http://localhost:8080/spec?user=\'').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -232,7 +235,7 @@ describe("sql", function(){
     it("testDeleteSimpleSqlInj", function(done){
         request.del('http://localhost:8080/spec?user=\' or 1 = \'1').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -241,7 +244,7 @@ describe("sql", function(){
     it("testDeleteLogicSqlInjection", function(done){
         request.del('http://localhost:8080/spec?user=1 or 1 = \'1\'').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -260,7 +263,7 @@ describe("sql", function(){
     it("testDeleteCommentCrash1SqlInj", function(done){
         request.del('http://localhost:8080/spec?user= --').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -269,7 +272,7 @@ describe("sql", function(){
     it("testDeleteCommentCrash2SqlInjection", function(done){
         request.del('http://localhost:8080/spec?user=/*').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -278,7 +281,7 @@ describe("sql", function(){
     it("testDeleteCommentCrash3SqlInjection", function(done){
         request.del('http://localhost:8080/spec?user=1;/*').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -287,7 +290,7 @@ describe("sql", function(){
     it("testDeleteMultipleQuerySqlInjection", function(done){
         request.del('http://localhost:8080/spec?user=1; INSERT INTO users').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -296,7 +299,7 @@ describe("sql", function(){
     it("testDeleteUnionSqlInjection", function(done){
         request.del('http://localhost:8080/spec?user=1 UNION ALL SELECT creditCardNr FROM table').on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -305,7 +308,7 @@ describe("sql", function(){
     it("testPutSimpleSqlInj", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '1; INSERT INTO users' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -314,7 +317,7 @@ describe("sql", function(){
     it("testPutLogicSqlInjection", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '1 or 1 = \'1\'' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -333,7 +336,7 @@ describe("sql", function(){
     it("testPutCommentCrash1SqlInj", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '--' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -342,7 +345,7 @@ describe("sql", function(){
     it("testPutCommentCrash2SqlInjection", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '/*' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -351,7 +354,7 @@ describe("sql", function(){
     it("testPutCommentCrash3SqlInjection", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '1;/*' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -360,7 +363,7 @@ describe("sql", function(){
     it("testPutMultipleQuerySqlInjection", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '1; INSERT INTO users' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -369,7 +372,7 @@ describe("sql", function(){
     it("testPutUnionSqlInjection", function(done){
         request.put('http://localhost:8080/spec', { form: { user: '1; INSERT INTO users' } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });

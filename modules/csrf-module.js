@@ -17,12 +17,11 @@
      * @param next
      */
     CSRF.prototype.check = function (req, res, next) {
-        var _host = _config.ipService(req);
         var _referer = req.headers['referer'] || req.headers['x-referer'];
 
         //filters by allowed origins
         if (!filterByOrigin(req)) {
-            handleAttack(_host,res);
+            _config.attack.handle(req, res);
             return;
         }
 
@@ -34,7 +33,7 @@
 
         //filters methods by configured blacklist or whitelist
         if (!filterByMethods(req)) {
-            handleAttack(_host,res);
+            _config.attack.handle(req, res);
             return;
         }
 
@@ -52,7 +51,7 @@
 
         //forbids the referer to be anything else than the host
         if (_referer && !new RegExp(_referer).test(req.headers.host) && !new RegExp(req.headers.host).test(_referer)) {
-            handleAttack(_host,res);
+            _config.attack.handle(req, res);
             return;
         }
 
@@ -106,16 +105,6 @@
         } else {
             return true;
         }
-    }
-
-    /**
-     * This Method handle attack by user
-     * @param _host
-     */
-    function handleAttack(host, res) {
-        _logger.logAttack('CSRF', host)
-        _blocker.blockHost(host);
-        res.status(403).end();
     }
 
     module.exports = CSRF;

@@ -12,8 +12,11 @@ describe("mongodbwrapper", function(){
         var ExpressWaf = require('./../express-waf').ExpressWAF;
         var BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: mongodb,
-            blockTime: BLOCK_TIME
+            blocker: {
+                db: mongodb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
         });
 
         waf.addModule("blockme-module", {

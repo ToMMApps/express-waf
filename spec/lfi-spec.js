@@ -1,20 +1,23 @@
 describe("lfi", function(){
-    var server, testdb, request, waf;
+    var server, emudb, request, waf;
 
     it("should load properly", function(done){
         request = require('request');
         var express = require('express');
 
-        var TestDB = require('./../database/emulated-db');
-        testdb = new TestDB();
+        var EmulatedDB = require('./../database/emulated-db');
+        emudb = new EmulatedDB();
 
         var app = express();
 
         var ExpressWaf = require('./../express-waf').ExpressWAF;
         var BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: testdb,
-            blockTime: BLOCK_TIME
+            blocker: {
+                db: emudb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
         });
 
         waf.addModule('lfi-module', {appInstance: app, publicPath: "./public"}, function(error) {
@@ -52,7 +55,7 @@ describe("lfi", function(){
     it("testGetParentDirParam", function(done){
         request.get('http://localhost:8080/spec?file="../../passwd"', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -61,7 +64,7 @@ describe("lfi", function(){
     it("testGetParentDir", function(done){
         request.get('http://localhost:8080/../logger.js', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -70,7 +73,7 @@ describe("lfi", function(){
     it("testGetParentDir", function(done){
         request.get('http://localhost:8080/subdir/../spec.html', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -93,7 +96,7 @@ describe("lfi", function(){
     it("testGetUnknownFile", function(done){
         request.get('http://localhost:8080/unknown.html', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -102,7 +105,7 @@ describe("lfi", function(){
     it("testGetUnknownFile2", function(done){
         request.get('http://localhost:8080/subdir/unknown.html', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -111,7 +114,7 @@ describe("lfi", function(){
     it("testGetUnknownRoute", function(done){
         request.get('http://localhost:8080/unknown', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -120,7 +123,7 @@ describe("lfi", function(){
     it("testGetUnknownRoute", function(done){
         request.get('http://localhost:8080/unknown', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -136,7 +139,7 @@ describe("lfi", function(){
     it("testPostValidRoute", function(done){
         request.post('http://localhost:8080/route', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -145,7 +148,7 @@ describe("lfi", function(){
     it("testPostRoute", function(done){
         request.post('http://localhost:8080/unknown', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -154,7 +157,7 @@ describe("lfi", function(){
     it("testPutValidRoute", function(done){
         request.put('http://localhost:8080/route', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -163,7 +166,7 @@ describe("lfi", function(){
     it("testPutRoute", function(done){
         request.put('http://localhost:8080/unknown', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -172,7 +175,7 @@ describe("lfi", function(){
     it("testDelParentDirParam", function(done){
         request.del('http://localhost:8080/spec?file="../../passwd"', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -181,7 +184,7 @@ describe("lfi", function(){
     it("testDelParentDir", function(done){
         request.del('http://localhost:8080/../logger.js', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });
@@ -190,7 +193,7 @@ describe("lfi", function(){
     it("testDelParentDir2", function(done){
         request.del('http://localhost:8080/subdir/../spec.html', function(err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){
+            emudb.remove("127.0.0.1", function(){
                 done();
             });
         });

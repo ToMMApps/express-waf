@@ -1,6 +1,7 @@
 (function() {
 
     var _config;
+    var _logger;
 
     /**
      * The Blocker class realizes an IP blocklist that allows other modules to block attackers.
@@ -9,7 +10,7 @@
      * from Blocklist.
      * @constructor
      */
-    function Blocker(config) {
+    function Blocker(config, logger) {
 
         //DB must define an add, remove and contains function!
         if(!(config.db && config.db.add && config.db.remove && config.db.contains)){
@@ -17,6 +18,7 @@
         };
 
         _config = config;
+        _logger = logger;
     }
 
     /**
@@ -28,6 +30,7 @@
             if(_config.blockTime != undefined){  //check for undefined
                 setTimeout(function(){
                     _config.db.remove(ip, function(){
+                        _logger.log("removed host " + ip + " from blacklist after timeout");
                     });
                 }, _config.blockTime)
             }

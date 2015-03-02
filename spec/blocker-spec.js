@@ -13,8 +13,11 @@ describe("blocker", function(){
 
         BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: emudb,
-            blockTime: BLOCK_TIME
+            blocker: {
+                db: emudb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
         });
 
         waf.addModule("blockme-module", {

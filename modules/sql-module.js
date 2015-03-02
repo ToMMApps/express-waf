@@ -40,8 +40,6 @@
      * @param cb to get back to the app
      */
     SqlModule.prototype.check = function (req, res, cb) {
-        var _host = _config.ipService(req);
-
         if (req.method === 'GET' || req.method === 'DELETE') {
             checkGetOrDeleteRequest(req, res, cb);
         } else if (req.method === 'POST' || req.method === 'PUT') {
@@ -53,7 +51,7 @@
                 for(var i in req.body) {
                     for(var j in _patternSql){
                         if (_patternSql[j].test(req.body[i]) && _blocker.blockHost) {
-                            handleAttack();
+                            _config.attack.handle(req, res);
                             cb = undefined;
                             break;
                         }
@@ -72,7 +70,7 @@
             var _url = req.url;
             for(var i in _patternSql){
                 if (_patternSql[i].test(_url)) {
-                    handleAttack();
+                    _config.attack.handle(req, res);
                     cb = undefined;
                     break;
                 }
@@ -80,15 +78,6 @@
             if (cb) {
                 cb();
             }
-        }
-
-        /**
-         * Handles the attack by logging the host and blocking him.
-         */
-        function handleAttack() {
-            _logger.logAttack('SQL Injection', _host);
-            _blocker.blockHost(_host);
-            res.status(403).end();
         }
     };
 

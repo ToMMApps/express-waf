@@ -10,8 +10,11 @@ var emudb = new EmulatedDB();
 //construct firewall with configuration options
 //at least the database and the blacklist timeout have to be set
 var waf = new ExpressWAF({
-    db: emudb,
-    blockTime: 10000
+    blocker:{
+        db: emudb,
+        blockTime: 10000
+    },
+    log:true
 });
 
 //add modules to the firewall

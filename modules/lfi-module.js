@@ -17,7 +17,6 @@
     };
 
     LFI.prototype.check = function(req, res, cb) {
-        var _host = _config.ipService(req);
         var _validPattern = true;
         if (req.method === 'GET' || req.method === 'DELETE') {
             _validPattern = checkGetOrDeleteRequest(req, res, cb);
@@ -26,14 +25,14 @@
         if(_validPattern) {
             checkPath();
         } else{
-            handleAttack(_host);
+            _config.attack.handle(req, res);
         }
 
         function checkGetOrDeleteRequest(req, res, cb){
             var valid = true;
             var _url = req.url;
             _patterns.forEach(function(pattern) {
-                if (pattern.test(_url)&& _blocker.blockHost) {
+                if (pattern.test(_url)) {
                     valid = false;
                 }
             });
@@ -46,7 +45,7 @@
             if(!validRoute){
                 checkFileSystem(function (valid) {
                     if (!valid) {
-                        handleAttack(_host);
+                        _config.attack.handle(req, res);
                     } else if (cb) {
                         cb();
                     }
@@ -79,13 +78,7 @@
 
         }
 
-        function handleAttack(_host){
-            _blocker.blockHost(_host);
-            _logger.logAttack('LFIAttack', _host);
-            _blocker.blockHost(_host);
-            res.status(403).end();
-        }
-
+        /*
         function routeArrayForExpress3(){
             var routes = _app.get_router();
 
@@ -100,7 +93,7 @@
 
                 }
             }
-        }
+        }*/
 
         function routeArrayForExpress4(){
             _app._router.stack.forEach(function(a){

@@ -3,20 +3,19 @@
     var _blocker;
     var _logger;
 
-    function ExpressWAF(blockerConfig) {
-        var LoggerClass = require('./logger');
-        var BlockerClass = require('./blocker');
+    function ExpressWAF(config) {
+        var Logger = require('./logger');
+        _logger = new Logger(config.log);
 
-        _logger = new LoggerClass();
-        blockerConfig.ipService = getIP;
-        _blocker = new BlockerClass(blockerConfig);
-        _modules.push(_blocker);
+        var Blocker = require('./blocker');
+        config.blocker.ipService = ipService;
+        _blocker = new Blocker(config.blocker, _logger);
     };
 
     ExpressWAF.prototype.addModule = function (moduleName, config, callback) {
         var FirewallModuleClass = require('./modules/' + moduleName); //search for modules in this directory
         var firewallModule;
-        config.ipService = getIP;
+        config.attack = new AttackHandler(moduleName);
 
         if (FirewallModuleClass.prototype.check) {
             firewallModule = new FirewallModuleClass(config, _blocker, _logger);
@@ -27,8 +26,10 @@
     };
 
     ExpressWAF.prototype.check = function (req, res, cb) {
-        recursiveCall(0, function () {
-            cb();
+        _blocker.check(req, res, function(){
+            recursiveCall(0, function () {
+                cb();
+            });
         });
 
         /**
@@ -55,7 +56,7 @@
         cb();
     };
 
-    function getIP(req) {
+    function ipService(req) {
         var ip = req.ip;
         //if ip starts with 127 try to find a not localhost url
         if(ip.indexOf('127') === 0) {
@@ -63,6 +64,19 @@
         }
         return ip;
     }
+
+    function AttackHandler(module){
+        this._module = module;
+
+        this.handle = function(req, res){
+            var _host = ipService(req);
+            _logger.logAttack(this._module, _host);
+            _blocker.blockHost(_host);
+            res.status(403).end();
+        }
+    }
+
+
 
     module.exports.ExpressWAF = ExpressWAF;
 

@@ -11,8 +11,11 @@ describe("emudb", function(){
 
         var ExpressWaf = require('./../express-waf').ExpressWAF;
         waf = new ExpressWaf({
-            db: emudb,
-            blockTime: 1000
+            blocker: {
+                db: emudb,
+                blockTime: 1000
+            },
+            log: false
         });
 
         waf.addModule("blockme-module", {

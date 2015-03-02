@@ -18,8 +18,6 @@
     };
 
     XSSModule.prototype.check = function(req, res, cb) {
-        var _host = _config.ipService(req);
-
         if (req.method === 'GET' || req.method === 'DELETE') {
             checkGetOrDeleteRequest(req, res, cb);
         } else if (req.method === 'POST' || req.method === 'PUT') {
@@ -37,7 +35,7 @@
                     //console.log(/" [a-z]*="/i.spec(_reqElement));
                     _patterns.forEach(function (pattern) {
                         if (pattern.test(_reqElement) && _blocker.blockHost) {
-                            handleAttack(_host);
+                            _config.attack.handle(req, res);
                         }
                     });
                 });
@@ -51,18 +49,12 @@
             var _url = req.url;
             _patterns.forEach(function(pattern) {
                 if (pattern.test(_url) && _blocker.blockHost) {
-                    handleAttack(_host);
+                    _config.attack.handle(req, res);
                 }
             });
             if (cb) {
                 cb();
             }
-        };
-
-        function handleAttack(_host) {
-            _blocker.blockHost(_host);
-            _logger.logAttack('XSSAttack', _host);
-            res.status(403).end();
         };
     };
 
