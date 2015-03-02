@@ -5,7 +5,7 @@ describe("mongodbwrapper", function(){
         request = require('request');
         var express = require('express');
         var MongoDB = require('./../database/mongo-db');
-        mongodb = new MongoDB('localhost', 27017, 'blacklist', 'blacklist');
+        mongodb = new MongoDB('localhost', 27017, 'blacklist', 'blacklist', 'expresswaf', 'pass');
 
         var app = express();
 
