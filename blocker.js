@@ -11,15 +11,10 @@
      */
     function Blocker(config) {
 
-        //db must be configured
-        if(!config.db){
-            console.error("config has no member named db");
-        }
-        else{
-            if(!config.db.add || !config.db.remove || !config.db.contains){
-                console.error(config.db + "does not define an add, remove and/or contains function!");
-            }
-        }
+        //DB must define an add, remove and contains function!
+        if(!(config.db && config.db.add && config.db.remove && config.db.contains)){
+            throw "db must define an add, remove and contains function";
+        };
 
         _config = config;
     }
@@ -28,7 +23,7 @@
      * Adds a new ip to the Blocklist.
      */
     Blocker.prototype.blockHost = function(ip, cb) {
-        _config.db.add(ip, function(){
+        _config.db.add(ip, function(err){
             //removes this entry after an specific time
             if(_config.blockTime != undefined){  //check for undefined
                 setTimeout(function(){
@@ -41,12 +36,13 @@
         });
     };
 
+    /*
     Blocker.prototype.isHostBlocked = function(cb){
         var ip = _config.ipService(req);
         _config.db.contains(ip, function(isBlocked){
             cb(isBlocked);
         });
-    };
+    };*/
 
     /**
      * Checks with the contains function if the request ip is on the Blocklist. If so
@@ -54,11 +50,10 @@
      */
     Blocker.prototype.check = function(req, res, cb) {
         var ip = _config.ipService(req);
-        _config.db.contains(ip, function(isBlocked){
+        _config.db.contains(ip, function(err, isBlocked){
             if(!isBlocked){
                 cb();
-            }
-            else{
+            } else{
                 res.status(403).send('Blocked');
             }
         })

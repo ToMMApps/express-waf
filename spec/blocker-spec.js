@@ -1,5 +1,5 @@
 describe("blocker", function(){
-    var server, testdb, BLOCK_TIME, request, waf;
+    var server, emudb, BLOCK_TIME, request, waf;
 
     it("should load properly", function(done){
         request = require('request');
@@ -7,13 +7,13 @@ describe("blocker", function(){
         var app = express();
 
         var TestDB = require('./../database/emulated-db');
-        testdb = new TestDB();
+        emudb = new TestDB();
 
         var ExpressWaf = require('./../express-waf').ExpressWAF;
 
         BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: testdb,
+            db: emudb,
             blockTime: BLOCK_TIME
         });
 
@@ -39,7 +39,7 @@ describe("blocker", function(){
     it("must block clients that visit blockme", function(done){
         request.get("http://localhost:8080/blockme", function(err,res){
             expect(res.statusCode).toEqual(403);
-            testdb.remove("127.0.0.1", function(){  //remove entry from blacklist
+            emudb.remove("127.0.0.1", function(){  //remove entry from blacklist
                 done();
             });
         });
@@ -49,7 +49,7 @@ describe("blocker", function(){
         request.get("http://localhost:8080/blockme", function(err,res){ //add to blacklist
             request.get("http://localhost:8080/", function(err, res){
                 expect(res.statusCode).toEqual(403);
-                testdb.remove("127.0.0.1", function(){  //remove entry from blacklist
+                emudb.remove("127.0.0.1", function(){  //remove entry from blacklist
                     done();
                 });
             });

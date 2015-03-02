@@ -6,10 +6,6 @@
 module.exports = function EmulatedDB(){
     this._data = [];
 
-    this.open = function(cb){
-        cb();
-    };
-
     this.add = function(ip,cb){
         if(this._data.indexOf(ip) === -1){
             this._data[this._data.length] = ip;
@@ -19,7 +15,7 @@ module.exports = function EmulatedDB(){
     };
 
     this.contains = function(ip,cb){
-        cb(this._data.indexOf(ip) > -1);
+        cb(null, this._data.indexOf(ip) > -1);
     };
 
     this.remove = function(ip,cb){
@@ -31,9 +27,4 @@ module.exports = function EmulatedDB(){
 
         if(cb){cb();}
     };
-
-    this.removeAll = function(cb){
-        this._data = [];
-        if(cb){cb();}
-    }
 };

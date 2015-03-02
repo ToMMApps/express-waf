@@ -29,7 +29,7 @@
         _self = this;
 
         if(arguments < 3){
-            throw new Error("MongoDBWrapper constructor requires at least three arguments!");
+            throw ("MongoDB constructor requires at least three arguments!");
         }
 
         if(collection){
@@ -50,36 +50,28 @@
     MongoDB.prototype.open = function(cb){
 
         if(_isOpen){
-            console.log('Connection is already open!'); cb();
+            cb(null);
         }
         else{
             _db.open(function(err, db){
                 if(err){
-                    console.log('Could not open MongoDB on host: ' + _host);
-                } else {
-                    console.log('Successfully connected to MongoDB on host: ' + _host);
-                }
-
-                if(_username && _password) {
-                    _db.authenticate(_username, _password, function (err, result) {
-                        if(err) {
-                            console.log('Could not authenticate on MongoDB');
+                    cb(err);
+                } else if(_username && _password) {
+                    _db.authenticate(_username, _password, function (err) {
+                        if(err){
+                            cb(err);
                         } else {
-                            console.log('Successfully authenticated to MongoDB');
+                            _isOpen = true;
+                            cb();
                         }
-
-                        _isOpen = true;
-                        cb();
-                    })
+                    });
                 } else {
                     _isOpen = true;
-                    cb();
+                    cb(null);
                 }
-
-
             });
         }
-    }
+    };
 
     /**
      * Gets the Blocklist collection from the MongoDB instance.
@@ -89,71 +81,55 @@
         if(!_isOpen){
             _self.open(function () {
                 _self.removeAll(function() {
-                    getCollection();
+                    getCollection(cb);
                 });
-            })
+            });
         } else {
-            getCollection();
+            getCollection(cb);
         }
 
-        function getCollection() {
-            _db.collection(_collection, function (err, blocklist) {
-                if (err) {
-                    console.log("Error while accessing collection: " + _collection);
-                }
-                else {
-                    cb(blocklist);
-                }
-            });
+        function getCollection(cb) {
+            _db.collection(_collection, cb);
         }
-    }
+    };
 
     /**
      * Adds the ip to the Blocklist.
      */
     MongoDB.prototype.add = function(ip, cb) {
-        _getBlockList(function (blocklist) {
-            blocklist.insert({ipEntry: ip}, function (err) {
-                if (err) {
-                    console.log("Error while inserting: " + ip);
-                } else {
-                    console.log(ip + " successfully added to Blocklist");
-                }
-
-                cb();
-            });
+        _getBlockList(function (err, blocklist) {
+            if(err){
+                cb(err);
+            } else {
+                blocklist.insert({ipEntry: ip}, cb);
+            }
         });
-    }
+    };
 
     /**
      * Calls cb with true if the Blocklist contains the specified ip.
+     * Callback must have params err and item
      */
     MongoDB.prototype.contains = function(ip, cb) {
-        _getBlockList(function (blocklist) {
-            blocklist.findOne({ipEntry: ip}, function(err, item){
-                if(err){
-                    console.log("Error while accessing collection: " + _collection);
-                } else{
-                    cb(item != null);
-                }
-            });
+        _getBlockList(function (err,blocklist) {
+            if(err){
+                cb(err);
+            } else {
+                blocklist.findOne({ipEntry: ip}, cb);
+            }
         });
-    }
+    };
 
     /**
      * Removes ip from Blocklist.
      */
     MongoDB.prototype.remove = function(ip, cb) {
-        _getBlockList(function (blocklist) {
-            blocklist.remove({ipEntry: ip}, function(err, records){
-                if(err){
-                    console.log("Error while removing " + ip + " from Blocklist");
-                } else{
-                    console.log("Removed " + ip + " from Blocklist on host " + _host);
-                }
-
-                cb();
-            });
+        _getBlockList(function (err, blocklist) {
+            if(err){
+                cb(err);
+            } else{
+                blocklist.remove({ipEntry: ip}, cb);
+            }
         });
     };
 
@@ -161,23 +137,17 @@
      * Remove all hosts from blocklist.
      */
     MongoDB.prototype.removeAll = function (cb) {
-        _getBlockList(function (blocklist) {
-            blocklist.remove({}, function (err) {
-                if(err) {
-                    console.log("Error while removing all hosts from Blocklist");
-                } else {
-                    console.log("Removed all Hosts from Blocklist")
-                }
-                if(cb)
-                    cb();
-            })
+        _getBlockList(function (err, blocklist) {
+            if(err){
+                cb(err);
+            } else {
+                blocklist.remove({}, cb);
+            }
         })
-    }
+    };
 
     MongoDB.prototype.close = function(cb){
-        _db.close(function(err){
-            cb();
-        });
+        _db.close(cb);
     };
 
     module.exports = MongoDB;

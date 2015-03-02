@@ -1,18 +1,18 @@
 describe("mongodbwrapper", function(){
-    var server, mongodbwrapper, request, waf;
+    var server, mongodb, request, waf;
 
     it("should load properly", function(done){
         request = require('request');
         var express = require('express');
-        var MongoDBWrapper = require('./../database/mongo-db');
-        mongodbwrapper = new MongoDBWrapper('localhost', 27017, 'blacklist', 'blacklist');
+        var MongoDB = require('./../database/mongo-db');
+        mongodb = new MongoDB('localhost', 27017, 'blacklist', 'blacklist');
 
         var app = express();
 
         var ExpressWaf = require('./../express-waf').ExpressWAF;
         var BLOCK_TIME = 1000;
         waf = new ExpressWaf({
-            db: mongodbwrapper,
+            db: mongodb,
             blockTime: BLOCK_TIME
         });
 
@@ -34,19 +34,23 @@ describe("mongodbwrapper", function(){
         });
     });
 
+
     it("must open a connection", function(done){
-        mongodbwrapper.open(function(err){
+        mongodb.open(function(err){
             expect(err).toEqual(null);
             done();
-        })
+        });
     });
 
     it("must block an ip on the blacklist", function(done){
-        mongodbwrapper.open(function(){
-            mongodbwrapper.add("127.0.0.1", function(){ //add entry to blacklist
+        mongodb.open(function(err){
+            expect(err).toEqual(null);
+            request.get("http://localhost:8080/blockme", function(err, res){
+                expect(err).toEqual(null);
                 request.get("http://localhost:8080", function(err, res){
                     expect(res.statusCode).toEqual(403);
-                    mongodbwrapper.remove("127.0.0.1", function(){  //remove entry from blacklist
+                    mongodb.remove("127.0.0.1", function(err){  //remove entry from blacklist
+                        expect(err).toEqual(null);
                         done();
                     });
                 });
@@ -62,8 +66,9 @@ describe("mongodbwrapper", function(){
     });
 
     it("should close properly", function(done){
-        mongodbwrapper.removeAll(function(){
-            mongodbwrapper.close(function(){
+        mongodb.removeAll(function(err){
+            expect(err).toEqual(null);
+            mongodb.close(function(){
                 waf.removeAll(function(){
                     server.close(function(){
                         done();
