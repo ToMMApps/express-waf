@@ -5,6 +5,9 @@
 
     function ExpressWAF(config) {
         var Logger = require('./logger');
+        if(config.log === undefined){
+            config.log = true;
+        }
         _logger = new Logger(config.log);
 
         var Blocker = require('./blocker');

@@ -5,14 +5,19 @@ A small web application firewall for the NodeJS Express framework.
 
 Usage
 ----------
-The constructor expects the blacklist timeout (after that timeout the host will be removed from the blacklist) and
-the used database for the blacklist as parameters.
-In the folder "/database" you can find predefined database connectors. If you don't find the connector you need, you may
-define your own database connector. This connector must define an add-, a remove- and a contains-function.
+The constructor expects the configuration for the blocker and optional settings as parameters.
+Blocker configuration includes:
+    - blockTime: A blacklist timeout which indicates the time after that entries from the blacklist will be removed.
+    - db: The used database for the blacklist. In the folder "/database" you can find predefined database connectors.
+    If you don't find the connector you need, you may define your own database connector.
+    This connector must define an add-, a remove- and a contains-function.
 ```
 var waf = new ExpressWAF({
-    db: emudb,
-    blockTime: 10000
+    blocker: {
+        db: emudb,
+        blockTime: 10000
+    },
+    log: true
 });
 ```
 
