@@ -3,6 +3,12 @@ express-waf
 
 A small web application firewall for the NodeJS Express framework.
 
+Installation
+----------
+```
+npm install --save express-waf
+```
+
 Usage
 ----------
 The constructor expects the configuration for the blocker and optional settings as parameters.
