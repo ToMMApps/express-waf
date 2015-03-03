@@ -72,8 +72,6 @@ Code coverage can be calculated with istanbul:
 istanbul cover jasmine-node spec/
 ```
 
-Code-Quality
---------
 Current jenkins report for this project:
 
 - ![BuildStatus](http://jenkins.tomm-apps.de/buildStatus/icon?job=tommapps_express-waf)
