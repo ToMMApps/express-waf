@@ -46,6 +46,14 @@ app.use(waf.check);
 If you forget this step your firewall won't do anything!
 This is it. Your firewall is now configured to be used with your node.js/express application.
 
+List of Modules
+---------
+
+- csrf-module: https://www.owasp.org/index.php/CSRF
+- lfi-module: https://www.owasp.org/index.php/Testing_for_Local_File_Inclusion
+- sql-module: https://www.owasp.org/index.php/SQL_Injection
+- xss-module: https://www.owasp.org/index.php/Cross-site_Scripting_%28XSS%29
+
 Code-Quality
 ---------
 All modules can be tested by using the jasmine-node testing framework:
