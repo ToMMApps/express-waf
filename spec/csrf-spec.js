@@ -1,5 +1,10 @@
 describe("csrf", function(){
-    var server, emudb, request, waf;
+    var server, emudb, request, waf, port;
+    if(process.env.port){
+        port = process.env.port;
+    } else {
+        port = 8080;
+    }
 
     it("should load properly", function(done){
         request = require('request');
@@ -45,13 +50,13 @@ describe("csrf", function(){
             res.status(200).end();
         });
 
-        server = app.listen(8080, function(){
+        server = app.listen(port, function(){
             done();
         });
     });
 
     it("must not block referer independent urls", function(done){
-        request.get('http://localhost:8080/referer_independent', function (err, res) {
+        request.get('http://localhost:' + port + '/referer_independent', function (err, res) {
             expect(res.statusCode).toEqual(200);
             done();
         });
@@ -62,7 +67,7 @@ describe("csrf", function(){
           'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)'
         };
         request.get({
-            url:'http://localhost:8080/referer_dependent',
+            url:'http://localhost:' + port + '/referer_dependent',
             headers: _headers
         }, function (err, res) {
             expect(res.statusCode).toEqual(200);
@@ -71,7 +76,7 @@ describe("csrf", function(){
     });
 
     it("must allow everything that has neither a referer nor an user-agent entry", function(done){
-        request.get('http://localhost:8080/referer_dependent', function (err, res) {
+        request.get('http://localhost:' + port + '/referer_dependent', function (err, res) {
             expect(res.statusCode).toEqual(200);
             done();
         });
@@ -83,7 +88,7 @@ describe("csrf", function(){
             'Referer': 'evil.com'
         };
         request.get({
-            url:'http://localhost:8080/referer_dependent',
+            url:'http://localhost:' + port + '/referer_dependent',
             headers: _headers
         }, function (err, res) {
             expect(res.statusCode).toEqual(403);
@@ -99,7 +104,7 @@ describe("csrf", function(){
             'Referer': 'localhost'
         };
         request.get({
-            url:'http://localhost:8080/referer_dependent',
+            url:'http://localhost:' + port + '/referer_dependent',
             headers: _headers
         }, function (err, res) {
             expect(res.statusCode).toEqual(200);
@@ -113,7 +118,7 @@ describe("csrf", function(){
             'Referer': 'localhost'
         };
         request.put({
-            url:'http://localhost:8080/referer_dependent',
+            url:'http://localhost:' + port + '/referer_dependent',
             headers: _headers
         }, function (err, res) {
             expect(res.statusCode).toEqual(403);
@@ -129,7 +134,7 @@ describe("csrf", function(){
             'Referer': 'localhost'
         };
         request.put({
-            url:'http://localhost:8080/referer_independent',
+            url:'http://localhost:' + port + '/referer_independent',
             headers: _headers
         }, function (err, res) {
             expect(res.statusCode).toEqual(200);
@@ -142,7 +147,7 @@ describe("csrf", function(){
             'Origin': 'www.evil.com'
         };
         request.get({
-            url: 'http://localhost:8080/referer_independent',
+            url: 'http://localhost:' + port + '/referer_independent',
             headers: headers
         }, function(err, res) {
             expect(res.statusCode).toEqual(403);
@@ -157,7 +162,7 @@ describe("csrf", function(){
             'Origin': 'www.example.com'
         };
         request.get({
-            url: 'http://localhost:8080/referer_independent',
+            url: 'http://localhost:' + port + '/referer_independent',
             headers: headers
         }, function(err, res) {
             expect(res.statusCode).toEqual(200);

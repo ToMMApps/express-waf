@@ -1,5 +1,10 @@
 describe("blocker", function(){
-    var server, emudb, BLOCK_TIME, request, waf;
+    var server, emudb, BLOCK_TIME, request, waf, port;
+    if(process.env.port){
+        port = process.env.port;
+    } else {
+        port = 8080;
+    }
 
     it("should load properly", function(done){
         request = require('request');
@@ -34,13 +39,13 @@ describe("blocker", function(){
             res.status(200).end();
         });
 
-        server = app.listen(8080, function(){
+        server = app.listen(port, function(){
             done();
         });
     });
 
     it("must block clients that visit blockme", function(done){
-        request.get("http://localhost:8080/blockme", function(err,res){
+        request.get("http://localhost:" + port + "/blockme", function(err,res){
             expect(res.statusCode).toEqual(403);
             emudb.remove("127.0.0.1", function(){  //remove entry from blacklist
                 done();
@@ -49,8 +54,8 @@ describe("blocker", function(){
     });
 
     it("must block clients on the blacklist that visit other sites", function(done){
-        request.get("http://localhost:8080/blockme", function(err,res){ //add to blacklist
-            request.get("http://localhost:8080/", function(err, res){
+        request.get("http://localhost:" + port + "/blockme", function(err,res){ //add to blacklist
+            request.get("http://localhost:" + port + "/", function(err, res){
                 expect(res.statusCode).toEqual(403);
                 emudb.remove("127.0.0.1", function(){  //remove entry from blacklist
                     done();
@@ -60,16 +65,16 @@ describe("blocker", function(){
     });
 
     it("must not block clients that are not on the blacklist", function(done){
-        request.get("http://localhost:8080", function(err,res){
+        request.get("http://localhost:" + port, function(err,res){
             expect(res.statusCode).toEqual(200);
             done();
         });
     });
 
     it("must remove clients from the blacklist after blockTime", function(done){
-        request.get("http://localhost:8080/blockme", function(err,res) { //add to blacklist
+        request.get("http://localhost:" + port + "/blockme", function(err,res) { //add to blacklist
             setTimeout(function(){
-                request.get("http://localhost:8080", function(err,res){
+                request.get("http://localhost:" + port, function(err,res){
                     expect(res.statusCode).toEqual(200);
                     done();
                 });
