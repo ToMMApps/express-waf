@@ -34,9 +34,6 @@ describe("mongodbwrapper", function(){
             res.status(200).end();
         });
 
-        app.get('/blockme', function(req, res) {
-            res.status(200).end();
-        });
         server = app.listen(port, function(){
             done();
         });
@@ -74,16 +71,17 @@ describe("mongodbwrapper", function(){
     });
 
     it("should close properly", function(done){
-        mongodb.removeAll(function(err){
-            expect(err).toEqual(null);
-            mongodb.close(function(){
-                waf.removeAll(function(){
-                    server.close(function(){
+        server.close(function(){
+            mongodb.removeAll(function(err){
+                expect(err).toEqual(null);
+                mongodb.close(function(){
+                    waf.removeAll(function(){
                         done();
                     });
                 });
             });
         });
+
     });
 });
 

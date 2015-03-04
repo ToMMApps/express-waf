@@ -27,9 +27,7 @@ describe("xss", function() {
             log: false
         });
 
-        waf.addModule('xss-module', {}, function(error) {
-            console.log(error);
-        });
+        waf.addModule('xss-module', {});
 
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({

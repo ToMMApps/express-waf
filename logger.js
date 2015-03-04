@@ -21,6 +21,10 @@
         }
     };
 
+    Logger.prototype.isEnabled = function(cb){
+        cb(_enabled);
+    };
+
     module.exports = Logger;
 
 })();

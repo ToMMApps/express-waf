@@ -20,11 +20,11 @@
         var firewallModule;
         config.attack = new AttackHandler(moduleName);
 
-        if (FirewallModuleClass.prototype.check) {
+        if (FirewallModuleClass && FirewallModuleClass.prototype.check) {
             firewallModule = new FirewallModuleClass(config, _blocker, _logger);
             _modules.push(firewallModule);
         } else {
-            callback(moduleName + ' does not define a check and an init function!');
+            callback(moduleName + ' does not define a check function!');
         }
     };
 
@@ -57,6 +57,10 @@
     ExpressWAF.prototype.removeAll = function(cb){
         _modules = [_blocker];
         cb();
+    };
+
+    ExpressWAF.prototype.isLoggingEnabled = function(cb){
+        _logger.isEnabled(cb);
     };
 
     function ipService(req) {

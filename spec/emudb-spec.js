@@ -29,13 +29,6 @@ describe("emudb", function(){
 
         app.use(waf.check);
 
-        app.get('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.get('/blockme', function(req, res) {
-            res.status(200).end();
-        });
         server = app.listen(port, function(){
             done();
         });

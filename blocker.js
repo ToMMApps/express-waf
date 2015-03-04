@@ -24,7 +24,7 @@
     /**
      * Adds a new ip to the Blocklist.
      */
-    Blocker.prototype.blockHost = function(ip, cb) {
+    Blocker.prototype.blockHost = function(ip) {
         _config.db.add(ip, function(err){
             //removes this entry after an specific time
             if(_config.blockTime != undefined){  //check for undefined
@@ -34,8 +34,6 @@
                     });
                 }, _config.blockTime)
             }
-            if(cb)
-                cb();
         });
     };
 

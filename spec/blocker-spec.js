@@ -1,10 +1,6 @@
 describe("blocker", function(){
     var server, emudb, BLOCK_TIME, request, waf, port;
-    if(process.env.port){
-        port = process.env.port;
-    } else {
-        port = 8080;
-    }
+    port = process.env.port? process.env.port : 8080;
 
     it("should load properly", function(done){
         request = require('request');
@@ -35,10 +31,6 @@ describe("blocker", function(){
             res.status(200).end();
         });
 
-        app.get('/blockme', function(req, res) {
-            res.status(200).end();
-        });
-
         server = app.listen(port, function(){
             done();
         });
@@ -51,6 +43,21 @@ describe("blocker", function(){
                 done();
             });
         });
+    });
+
+    it("should throw an error when using an invalid db", function(done){
+        var DB = function(){};
+        var Blocker = require('./../blocker');
+
+        try{
+
+            var blocker = new Blocker({
+                db: new DB(),
+                blockTime: 1000
+            });
+        } catch(e){
+            done();
+        }
     });
 
     it("must block clients on the blacklist that visit other sites", function(done){

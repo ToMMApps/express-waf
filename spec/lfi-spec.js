@@ -25,30 +25,12 @@ describe("lfi", function(){
             log: false
         });
 
-        waf.addModule('lfi-module', {appInstance: app, publicPath: "./public"}, function(error) {
-            console.log(error);
-        });
+        waf.addModule('lfi-module', {appInstance: app, publicPath: "./public"});
 
         app.use(waf.check);
         app.use(express.static("./public"));
 
-        app.get('/', function(req, res) {
-            res.status(200).end();
-        });
-
         app.get('/route', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.delete('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.post('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.put('/', function(req, res) {
             res.status(200).end();
         });
 

@@ -1,10 +1,7 @@
-describe("csrf", function(){
-    var server, emudb, request, waf, port;
-    if(process.env.port){
-        port = process.env.port;
-    } else {
-        port = 8080;
-    }
+var port = process.env.port? process.env.port : 8080;
+
+describe("csrf with method-whitelist", function(){
+    var server, emudb, request, waf;
 
     it("should load properly", function(done){
         request = require('request');
@@ -28,22 +25,14 @@ describe("csrf", function(){
             allowedMethods:['GET', 'POST'],
             refererIndependentUrls: ['/referer_independent'],
             allowedOrigins: ['www.example.com']
-        }, function (error) {
-
         });
 
         app.use(waf.check);
 
-        app.get('/', function(req, res) {
-            res.status(200).end();
-        });
         app.get('/referer_independent', function(req, res) {
             res.status(200).end();
         });
         app.get('/referer_dependent', function(req, res) {
-            res.status(200).end();
-        });
-        app.put('/referer_dependent', function(req, res) {
             res.status(200).end();
         });
         app.put('/referer_independent', function(req, res) {
@@ -165,6 +154,143 @@ describe("csrf", function(){
             url: 'http://localhost:' + port + '/referer_independent',
             headers: headers
         }, function(err, res) {
+            expect(res.statusCode).toEqual(200);
+            done();
+        });
+    });
+
+    it("should close properly", function(done){
+        waf.removeAll(function(){
+            server.close(function(){
+                done();
+            });
+        });
+    });
+});
+
+describe("csrf with method-blacklist", function() {
+    var server, emudb, request, waf;
+
+    it("should load an alternative configuration with a method-blacklist", function (done) {
+        request = require('request');
+        var express = require('express');
+        var EmulatedDB = require('./../database/emulated-db');
+        emudb = new EmulatedDB();
+
+        var app = express();
+
+        var ExpressWaf = require('./../express-waf').ExpressWAF;
+        var BLOCK_TIME = 1000;
+        waf = new ExpressWaf({
+            blocker: {
+                db: emudb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
+        });
+
+        waf.addModule('csrf-module', {
+            blockedMethods: ['GET', 'POST'],
+            refererIndependentUrls: ['/referer_independent'],
+            allowedOrigins: ['www.example.com']
+        });
+
+        app.use(waf.check);
+
+        app.delete('/referer_dependent', function (req, res) {
+            res.status(200).end();
+        });
+
+        server = app.listen(port, function () {
+            done();
+        });
+    });
+
+    it("must forbid a blacklisted method on referer dependent url", function (done) {
+        var _headers = {
+            'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
+            'Referer': 'localhost'
+        };
+        request.get({
+            url: 'http://localhost:' + port + '/referer_dependent',
+            headers: _headers
+        }, function (err, res) {
+            expect(res.statusCode).toEqual(403);
+            emudb.remove("127.0.0.1", function () {
+                done();
+            });
+        });
+    });
+
+    it("must allow a not blacklisted method on referer dependent url", function (done) {
+        var _headers = {
+            'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
+            'Referer': 'localhost'
+        };
+        request.del({
+            url: 'http://localhost:' + port + '/referer_dependent',
+            headers: _headers
+        }, function (err, res) {
+            expect(res.statusCode).toEqual(200);
+            done();
+        });
+    });
+
+    it("should close properly", function (done) {
+        waf.removeAll(function () {
+            server.close(function () {
+                done();
+            });
+        });
+    });
+});
+
+describe("csrf without a method list", function(){
+    var server, emudb, request, waf;
+
+    it("should load an alternative configuration without a method list", function(done){
+        request = require('request');
+        var express = require('express');
+        var EmulatedDB = require('./../database/emulated-db');
+        emudb = new EmulatedDB();
+
+        var app = express();
+
+        var ExpressWaf = require('./../express-waf').ExpressWAF;
+        var BLOCK_TIME = 1000;
+        waf = new ExpressWaf({
+            blocker: {
+                db: emudb,
+                blockTime: BLOCK_TIME
+            },
+            log: false
+        });
+
+        waf.addModule('csrf-module', {
+            refererIndependentUrls: ['/referer_independent'],
+            allowedOrigins: ['www.example.com']
+        });
+
+        app.use(waf.check);
+
+        app.post('/referer_dependent', function(req, res) {
+            res.status(200).end();
+        });
+
+        server = app.listen(port, function(){
+            done();
+        });
+    });
+
+    it("must allow any method on a referer dependent url", function(done){
+        var _headers = {
+            'User-Agent': 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)',
+            'Referer': 'localhost'
+        };
+        request.post({
+            url:'http://localhost:' + port + '/referer_dependent',
+            headers: _headers
+        }, function (err, res) {
             expect(res.statusCode).toEqual(200);
             done();
         });

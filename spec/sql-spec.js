@@ -27,9 +27,7 @@ describe("sql", function(){
             log: false
         });
 
-        waf.addModule('sql-module', {}, function(error) {
-            console.log(error);
-        });
+        waf.addModule('sql-module', {});
 
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({
@@ -40,22 +38,6 @@ describe("sql", function(){
         app.use(express.static("./"));
 
         app.get('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.get('/spec', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.delete('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.post('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        app.put('/', function(req, res) {
             res.status(200).end();
         });
 
