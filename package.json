@@ -1,6 +1,6 @@
 {
   "name": "express-waf",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A simple Web Application Firewall (WAF)",
   "main": "index.js",
   "scripts": {
