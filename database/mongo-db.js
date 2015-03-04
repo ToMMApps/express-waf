@@ -28,7 +28,7 @@
     function MongoDB(host, port, database, collection, username, password){
         _self = this;
 
-        if(arguments < 3){
+        if(arguments.length < 3){
             throw ("MongoDB constructor requires at least three arguments!");
         }
 
@@ -62,7 +62,7 @@
                             cb(err);
                         } else {
                             _isOpen = true;
-                            cb();
+                            cb(null);
                         }
                     });
                 } else {
@@ -115,7 +115,9 @@
             if(err){
                 cb(err);
             } else {
-                blocklist.findOne({ipEntry: ip}, cb);
+                blocklist.findOne({ipEntry: ip}, function(err, res){
+                    cb(err, res !== null);
+                });
             }
         });
     };
@@ -148,6 +150,7 @@
 
     MongoDB.prototype.close = function(cb){
         _db.close(cb);
+        _isOpen = false;
     };
 
     module.exports = MongoDB;
