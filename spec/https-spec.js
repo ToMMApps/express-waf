@@ -1,72 +1,83 @@
 describe("https", function(){
 
-	var server, emudb, BLOCK_TIME, request, waf, port;
-    port = process.env.port? process.env.port : 8080;
+    var HttpsModule = require('../modules/https-redirect-module');
 
-    it("should load properly", function(done){
-        request = require('request');
-        var express = require('express');
-        var app = express();
+    it("must redirect clients that visit httpstest via proxy and http protocol", function(done){
+        var redirecter = new HttpsModule();
 
-        var TestDB = require('./../database/emulated-db');
-        emudb = new TestDB();
+        var req = {
+            headers: {
+                'x-forwarded-proto': 'http'
+            }
+        };
 
-        var ExpressWaf = require('./../express-waf').ExpressWAF;
-
-        BLOCK_TIME = 1000;
-        waf = new ExpressWaf({
-            blocker: {
-                db: emudb,
-                blockTime: BLOCK_TIME
-            },
-            log: false
-        });
-
-        waf.addModule("https-redirect-module", {
-            url: "/https"
-        });
-
-        app.use(waf.check);
-
-        app.get('/', function(req, res) {
-            res.status(200).end();
-        });
-
-        server = app.listen(port, function(){
-            done();
-        });
-    });
-
-    it("must redirect clients that visit https via http protocol", function(done){
-        request.get("http://localhost:" + port + "/https", function(err,res){
-            expect(res.statusCode).toEqual(200);
-            // TODO write real test criteria
-            done();
-        });
-    });
-
-    it("must not redirect clients that visit https via https protocol", function(done){
-        request.get("http://localhost:" + port + "/https", function(err,res){
-            expect(res.statusCode).toEqual(200);
-            // TODO write real test criteria
-            done();
-        });
-    });
-
-    it("must redirect clients that visit https on an openShift server", function(done){
-        request.get("http://localhost:" + port + "/https", function(err,res){
-            expect(res.statusCode).toEqual(200);
-            // TODO write real test criteria
-            done();
-        });
-    });
-
-    it("should close properly", function(done){
-        waf.removeAll(function(){
-            server.close(function(){
+        redirecter.check(req, {
+            redirect: function(){
+                expect(true).toBeTruthy();
                 done();
-            });
+            }
+        }, function(){
+            expect(false).toBeTruthy();
+            done();
         });
     });
 
+    it("must work for clients that visit httpstest via proxy and https protocol", function(done){
+        var redirecter = new HttpsModule();
+
+        var req = {
+            headers: {
+                'x-forwarded-proto': 'https'
+            }
+        };
+
+        redirecter.check(req, {
+            redirect: function(){
+                expect(false).toBeTruthy();
+                done();
+            }
+        }, function(){
+            expect(true).toBeTruthy();
+            done();
+        });
+    });
+
+    it("must redirect clients that visit httpstest without proxy and https protocol", function(done){
+        
+        var redirecter = new HttpsModule();
+
+        var req = {
+            secure: true,
+            headers: {}
+        };
+
+        redirecter.check(req, {
+            redirect: function(){
+                expect(true).toBeFalsy();
+                done();
+            }
+        }, function(){
+            expect(true).toBeTruthy();
+            done();
+        });
+    });
+
+    it("must redirect clients that visit httpstest without proxy and http protocol", function(done){
+        var redirecter = new HttpsModule();
+
+        var req = {
+            secure: false,
+            headers: {}
+        };
+
+        redirecter.check(req, {
+            redirect: function(){
+                expect(true).toBeTruthy();
+                done();
+            }
+        }, function(){
+            expect(true).toBeFalsy();
+            done();
+        });
+    });
 });
