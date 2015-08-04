@@ -42,11 +42,13 @@
     SqlModule.prototype.check = function (req, res, cb) {
         if (req.method === 'GET' || req.method === 'DELETE') {
             checkGetOrDeleteRequest(req, res, cb);
-        } else if (req.method === 'POST' || req.method === 'PUT') {
-            checkPostOrPutRequest(req, res, cb);
+        } else if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+            checkPostOrPutOrPatchRequest(req, res, cb);
         }
 
-        function checkPostOrPutRequest(req, res, cb) {
+        // TODO maybe add error handling for unknown request methods
+
+        function checkPostOrPutOrPatchRequest(req, res, cb) {
             if (req.body) {
                 for(var i in req.body) {
                     for(var j in _patternSql){

@@ -12,19 +12,21 @@
         _patterns.push(_xemplar.security.xss.img);
         _patterns.push(_xemplar.security.xss.paranoid);
         _patterns.push(/(\%22)(\%20)*[a-z0-9=\%22]*/i);
-        _patterns.push(/" [a-z]*="/i)
+        _patterns.push(/" [a-z]*="/i);
         _blocker = blocker;
         _logger = logger;
-    };
+    }
 
     XSSModule.prototype.check = function(req, res, cb) {
         if (req.method === 'GET' || req.method === 'DELETE') {
             checkGetOrDeleteRequest(req, res, cb);
-        } else if (req.method === 'POST' || req.method === 'PUT') {
-            checkPostOrPutRequest(req, res, cb);
+        } else if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+            checkPostOrPutOrPatchRequest(req, res, cb);
         }
+
+        // TODO maybe add error handling for unknown request methods
         
-        function checkPostOrPutRequest(req, res, cb) {
+        function checkPostOrPutOrPatchRequest(req, res, cb) {
             var _keys;
             var _reqElement;
 
@@ -55,7 +57,7 @@
             if (cb) {
                 cb();
             }
-        };
+        }
     };
 
     module.exports = XSSModule;

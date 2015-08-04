@@ -14,7 +14,7 @@
         _config = config;
         _blocker = blocker;
         _logger = logger;
-    };
+    }
 
     BlockMe.prototype.check = function(req, res, cb) {
         if(_config.url && req.url === _config.url){
